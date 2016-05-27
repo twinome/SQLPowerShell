@@ -8,10 +8,10 @@
  
 /_____/_____/_____/_____/_____/_____/_____/_____/_____/
 
-Script: twinomeFunctions.ps1
+Script: twinomeSQLFunctions.ps1
 Author: Matt Warburton
 Date: 27/05/16
-Comments: SharePoint SQL functions
+Comments: SQL functions
 #>
 
 #REQUIRES -Version 4.0
