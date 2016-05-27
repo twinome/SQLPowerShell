@@ -1,3 +1,22 @@
+<# 
+  _               _                                    
+ / |_            (_)                                   
+`| |-'_   _   __ __  _ .--.   .--.  _ .--..--.  .---.  
+ | | [ \ [ \ [  |  |[ `.-. |/ .'`\ [ `.-. .-. |/ /__\\ 
+ | |, \ \/\ \/ / | | | | | || \__. || | | | | || \__., 
+ \__/  \__/\__/ [___|___||__]'.__.'[___||__||__]'.__.'                                         
+ 
+/_____/_____/_____/_____/_____/_____/_____/_____/_____/
+
+Script: twinomeFunctions.ps1
+Author: Matt Warburton
+Date: 27/05/16
+Comments: SharePoint SQL functions
+#>
+
+#REQUIRES -Version 4.0
+#REQUIRES -RunAsAdministrator
+
 Function Get-Databases {
     <#
     .SYNOPSIS
@@ -36,7 +55,7 @@ Function Get-Databases {
             }
 
             else {
-                Write-Output "instance $instance doesnt exist"                
+                Write-Output "instance $instance doesn't exist"                
             }
     }
 }
@@ -95,7 +114,65 @@ Function Add-LogInMapUserDatabase {
                 }
 
                 else {
-                    Write-Output "database $databaseName doesnt exist in $instanceName or $userName already exits"                
+                    Write-Output "database $databaseName doesn't exist in $instanceName or $userName already exits"                
+                }
+        }
+
+        catch{
+            $error = $_
+            Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"  
+        }
+    }
+} 
+
+Function Remove-LogInMapUserDatabase {
+    <#
+    .SYNOPSIS
+        Drop a user from database (database level permissions) 
+    .DESCRIPTION
+        Remove-LogInMapUserDatabase
+    .PARAMETER instanceName
+        Name of instance
+    .PARAMETER databaseName
+        Name of database
+    .PARAMETER userName
+        User name
+    .EXAMPLE
+        Remove-LogInMapUserDatabase -instanceName "the instance" -databaseName "the database" -userName "the user"
+    #>
+    [CmdletBinding()] 
+    param (
+        [string]$instanceName, 
+        [string]$databaseName,
+        [string]$userName
+    )
+      
+    BEGIN {
+
+        $ErrorActionPreference = 'Stop'    
+    }
+    
+    PROCESS {
+
+        try{
+            $instance = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $instanceName
+            $database = $instance.Databases[$databaseName]
+            $user = $database.Users[$userName]
+
+                if($database -and $user) {
+                    try {
+                        $user.Drop() 
+                        Write-Output "$userName dropped from $databaseName"   
+                    }
+        
+                    catch {
+                        $error = $_
+                        Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"                   
+                    }
+                }
+
+                else {
+                    Write-Output "database $databaseName doesn't exist in $instanceName or $userName doesn't exits"                
                 }
         }
 
@@ -165,7 +242,7 @@ Function Add-UserToRoleDatabase {
                 }
 
                 else {
-                    Write-Output "database $databaseName doesnt exist in $instanceName"                
+                    Write-Output "database $databaseName doesn't exist in $instanceName"                
                 }
         }
 
