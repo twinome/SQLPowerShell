@@ -55,8 +55,131 @@ Function Get-Databases {
             }
 
             else {
-                Write-Output "instance $instance doesn't exist"                
+                Write-Output "instance $instance doesnt exist"                
             }
+    }
+}
+
+Function Add-SchemaDatabase {
+    <#
+    .SYNOPSIS
+        Adds a schema to database 
+    .DESCRIPTION
+        Add-SchemaDatabase
+    .PARAMETER instanceName
+        Name of instance
+    .PARAMETER databaseName
+        Name of database
+    .PARAMETER schemaName
+        Name of schema
+    .EXAMPLE
+        Add-SchemaDatabase -instanceName "the instance" -databaseName "the database" -schemaName "the schema name"
+    #>
+    [CmdletBinding()] 
+    param (
+        [string]$instanceName, 
+        [string]$databaseName,
+        [string]$schemaName
+    )
+      
+    BEGIN {
+
+        $ErrorActionPreference = 'Stop'    
+    }
+    
+    PROCESS {
+
+        try{
+            $instance = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $instanceName
+            $database = $instance.Databases[$databaseName]
+            $schema = $database.Schemas[$schemaName]
+
+                if($database -and !$schema) {
+                    try {
+                        $newSchema = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Schema -ArgumentList $database, $schemaName
+                        $newSchema.Owner = "dbo"
+                        $newSchema.Create()
+                        Write-Output "$schemaName created in $databaseName"   
+                    }
+        
+                    catch {
+                        $error = $_
+                        Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"                   
+                    }
+                }
+
+                else {
+                    Write-Output "database $databaseName doesnt exist in $instanceName or $schemaName already exits"                
+                }
+        }
+
+        catch{
+            $error = $_
+            Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"  
+        }
+    }
+}
+
+Function Add-SchemaOwnerDatabase {
+    <#
+    .SYNOPSIS
+        Adds a schema owner
+    .DESCRIPTION
+        Add-SchemaOwnerDatabase
+    .PARAMETER instanceName
+        Name of instance
+    .PARAMETER databaseName
+        Name of database
+    .PARAMETER schemaName
+        Name of schema
+    .PARAMETER ownerName
+        Name of owner
+    .EXAMPLE
+        Add-SchemaOwnerDatabase -instanceName "the instance" -databaseName "the database" -schemaName "the schema name" -ownerName "the owner name"
+    #>
+    [CmdletBinding()] 
+    param (
+        [string]$instanceName, 
+        [string]$databaseName,
+        [string]$schemaName,
+        [string]$ownerName
+    )
+      
+    BEGIN {
+
+        $ErrorActionPreference = 'Stop'    
+    }
+    
+    PROCESS {
+
+        try{
+            $instance = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $instanceName
+            $database = $instance.Databases[$databaseName]
+            $schema = $database.Schemas[$schemaName]
+            $user = $database.Users[$ownerName]
+
+                if($database -and $user -and $schema) {
+                    try {
+                        $schema.Owner = $ownerName
+                        $schema.Alter()
+                        Write-Output "$schemaName owner set to $ownerName"   
+                    }
+        
+                    catch {
+                        $error = $_
+                        Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"                   
+                    }
+                }
+
+                else {
+                    Write-Output "database $databaseName, $schemaName, or $ownerName doesn't exist in $instanceName"                
+                }
+        }
+
+        catch{
+            $error = $_
+            Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"  
+        }
     }
 }
 
@@ -96,14 +219,14 @@ Function Add-LogInMapUserDatabase {
         try{
             $instance = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $instanceName
             $database = $instance.Databases[$databaseName]
-            $userExists = $database.Users[$userName]
+            $user = $database.Users[$userName]
 
-                if($database -and !$userExists) {
+                if($database -and !$user) {
                     try {
-                        $user = New-Object -TypeName Microsoft.SqlServer.Management.Smo.User -ArgumentList $database, $userName
-                        $user.Login = $loginName
-                        $user.DefaultSchema = $defaultSchema
-                        $user.Create()
+                        $newUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.User -ArgumentList $database, $userName
+                        $newUser.Login = $loginName
+                        $newUser.DefaultSchema = $defaultSchema
+                        $newUser.Create()
                         Write-Output "$userName created in $databaseName"   
                     }
         
@@ -114,7 +237,7 @@ Function Add-LogInMapUserDatabase {
                 }
 
                 else {
-                    Write-Output "database $databaseName doesn't exist in $instanceName or $userName already exits"                
+                    Write-Output "database $databaseName doesnt exist in $instanceName or $userName already exits"                
                 }
         }
 
@@ -123,7 +246,7 @@ Function Add-LogInMapUserDatabase {
             Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"  
         }
     }
-} 
+}
 
 Function Remove-LogInMapUserDatabase {
     <#
@@ -182,6 +305,64 @@ Function Remove-LogInMapUserDatabase {
         }
     }
 } 
+
+Function Remove-SchemaDatabase {
+    <#
+    .SYNOPSIS
+        Removes a schema 
+    .DESCRIPTION
+        Remove-SchemaDatabase
+    .PARAMETER instanceName
+        Name of instance
+    .PARAMETER databaseName
+        Name of database
+    .PARAMETER schemaName
+        Name of schema
+    .EXAMPLE
+        Remove-SchemaDatabase -instanceName "the instance" -databaseName "the database" -schemaName "the schema name"
+    #>
+    [CmdletBinding()] 
+    param (
+        [string]$instanceName, 
+        [string]$databaseName,
+        [string]$schemaName
+    )
+      
+    BEGIN {
+
+        $ErrorActionPreference = 'Stop'    
+    }
+    
+    PROCESS {
+
+        try{
+            $instance = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $instanceName
+            $database = $instance.Databases[$databaseName]
+            $schema = $database.Schemas[$schemaName]
+
+                if($database -and $schema) {
+                    try {
+                        $schema.Drop() 
+                        Write-Output "$schemaName dropped from $databaseName"   
+                    }
+        
+                    catch {
+                        $error = $_
+                        Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"                   
+                    }
+                }
+
+                else {
+                    Write-Output "database $databaseName or $schemaName doesn't exist in $instanceName"                
+                }
+        }
+
+        catch{
+            $error = $_
+            Write-Output "$($error.Exception.Message) - Line Number: $($error.InvocationInfo.ScriptLineNumber)"  
+        }
+    }
+}   
 
 Function Add-UserToRoleDatabase {
     <#
