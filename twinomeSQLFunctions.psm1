@@ -8,10 +8,10 @@
  
 /_____/_____/_____/_____/_____/_____/_____/_____/_____/
 
-Script: twinomeSQLFunctions.ps1
+Script: twinomeFunctions.ps1
 Author: Matt Warburton
 Date: 27/05/16
-Comments: SQL functions
+Comments: SharePoint SQL functions
 #>
 
 #REQUIRES -Version 4.0
@@ -55,7 +55,7 @@ Function Get-Databases {
             }
 
             else {
-                Write-Output "instance $instance doesnt exist"                
+                Write-Output "instance $instance doesn't exist"                
             }
     }
 }
@@ -109,7 +109,7 @@ Function Add-SchemaDatabase {
                 }
 
                 else {
-                    Write-Output "database $databaseName doesnt exist in $instanceName or $schemaName already exits"                
+                    Write-Output "database $databaseName doesn't exist in $instanceName or $schemaName already exits"                
                 }
         }
 
@@ -237,7 +237,7 @@ Function Add-LogInMapUserDatabase {
                 }
 
                 else {
-                    Write-Output "database $databaseName doesnt exist in $instanceName or $userName already exits"                
+                    Write-Output "database $databaseName doesn't exist in $instanceName or $userName already exits"                
                 }
         }
 
